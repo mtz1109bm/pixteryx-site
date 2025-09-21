@@ -205,23 +205,72 @@ function Contact() {
             <p className="flex items-center gap-2"><Mail size={18} className="text-sky-400" /> <a href="mailto:contact@pixteryx.fr" className="underline">contact@pixteryx.fr</a></p>
           </div>
         </div>
-        <form className="rounded-3xl border border-white/10 p-6 ${brand.card} grid gap-3" onSubmit={(e)=>e.preventDefault()}>
+        <form className="rounded-3xl border border-white/10 p-6 ${brand.card} grid gap-3" action="https://formspree.io/f/mrbyzbep" method="POST">
           <label className="grid gap-1">
             <span>Nom</span>
-            <input className="px-3 py-2 rounded-xl bg-slate-800/60 border border-white/10 focus:outline-none focus:ring-2 ring-sky-400/40" placeholder="Votre nom" />
+            <input name="name" className="px-3 py-2 rounded-xl bg-slate-800/60 border border-white/10 focus:outline-none focus:ring-2 ring-sky-400/40" placeholder="Votre nom" required />
           </label>
           <label className="grid gap-1">
             <span>Email</span>
-            <input type="email" className="px-3 py-2 rounded-xl bg-slate-800/60 border border-white/10 focus:outline-none focus:ring-2 ring-sky-400/40" placeholder="vous@entreprise.com" />
+            <input type="email" name="_replyto" className="px-3 py-2 rounded-xl bg-slate-800/60 border border-white/10 focus:outline-none focus:ring-2 ring-sky-400/40" placeholder="vous@entreprise.com" required />
           </label>
           <label className="grid gap-1">
             <span>Message</span>
-            <textarea rows={5} className="px-3 py-2 rounded-xl bg-slate-800/60 border border-white/10 focus:outline-none focus:ring-2 ring-sky-400/40" placeholder="Décrivez votre projet..." />
+            <textarea name="message" rows={5} className="px-3 py-2 rounded-xl bg-slate-800/60 border border-white/10 focus:outline-none focus:ring-2 ring-sky-400/40" placeholder="Décrivez votre projet..." required />
           </label>
+          {/* anti-spam honeypot */}
+          <input type="text" name="_gotcha" className="hidden" tabIndex={-1} autoComplete="off" />
+          {/* subject personnalisé */}
+          <input type="hidden" name="_subject" value="Nouveau message – pixteryx.fr" />
           <button className="mt-2 inline-flex items-center justify-center gap-2 px-5 py-3 rounded-xl bg-sky-500 text-slate-900 font-semibold hover:brightness-110">
             Envoyer <ArrowRight size={18} />
           </button>
+          <p className="text-xs ${brand.sub}">En envoyant, vous acceptez notre <a className="underline" href="#privacy">politique de confidentialité</a>.</p>
         </form>
+      </div>
+    </section>
+  );
+}
+
+// === Mentions légales & Politique de confidentialité (ancres)
+function Mentions() {
+  return (
+    <section id="mentions" className={`${brand.bg} ${brand.text}`}>
+      <div className="max-w-6xl mx-auto px-4 py-16 md:py-24 prose prose-invert">
+        <h2>Mentions légales</h2>
+        <p><strong>Éditeur :</strong> Pixteryx (SASU). Adresse : 143 Grande Rue Saint Michel, 31400 Toulouse, France. Tél. : 07 66 70 53 30. E‑mail : <a href="mailto:contact@pixteryx.fr">contact@pixteryx.fr</a>.</p>
+        <p><strong>Directeur de la publication :</strong> [Nom du dirigeant].</p>
+        <p><strong>Immatriculation :</strong> SIREN/SIRET : [à compléter]. RCS : [Ville et numéro]. Capital social : [€].</p>
+        <p><strong>Hébergement :</strong> Vercel Inc. (vercel.com).</p>
+        <h3>Propriété intellectuelle</h3>
+        <p>Le contenu du site (textes, logos, éléments graphiques) est la propriété de Pixteryx ou de ses partenaires. Toute reproduction non autorisée est interdite.</p>
+        <h3>Responsabilité</h3>
+        <p>Pixteryx s’efforce d’assurer l’exactitude des informations publiées mais ne saurait être tenue responsable des erreurs ou omissions.</p>
+        <p className="text-xs ${brand.sub}">Dernière mise à jour : 21/09/2025.</p>
+      </div>
+    </section>
+  );
+}
+
+function Privacy() {
+  return (
+    <section id="privacy" className={`${brand.bg} ${brand.text}`}>
+      <div className="max-w-6xl mx-auto px-4 py-16 md:py-24 prose prose-invert">
+        <h2>Politique de confidentialité</h2>
+        <p>Pixteryx respecte le Règlement Général sur la Protection des Données (RGPD) et la loi française.</p>
+        <h3>Données collectées</h3>
+        <p>Via le formulaire de contact : nom, adresse e‑mail, contenu du message. Finalités : répondre à vos demandes et assurer le suivi commercial. Base légale : intérêts légitimes et mesures précontractuelles.</p>
+        <h3>Destinataires & hébergement</h3>
+        <p>Les données sont traitées par Pixteryx et hébergées chez nos prestataires (hébergeur web/Vercel, outil de formulaire le cas échéant). Nous ne revendons pas vos données.</p>
+        <h3>Durées de conservation</h3>
+        <p>Jusqu’à 3 ans après le dernier contact à des fins de prospection, sauf obligation légale différente.</p>
+        <h3>Vos droits</h3>
+        <p>Vous disposez des droits d’accès, rectification, effacement, opposition, limitation et portabilité. Pour les exercer : <a href="mailto:contact@pixteryx.fr">contact@pixteryx.fr</a>. Vous pouvez introduire une réclamation auprès de la CNIL (cnil.fr).</p>
+        <h3>Cookies</h3>
+        <p>Par défaut, nous n’utilisons pas de cookies de suivi. Si des outils d’analyse sont ajoutés, une bannière d’information et un paramétrage des consentements seront mis en place.</p>
+        <h3>Sécurité</h3>
+        <p>Nous mettons en œuvre des mesures raisonnables pour protéger vos données. Les transferts en dehors de l’UE (par nos prestataires) sont encadrés par des garanties appropriées.</p>
+        <p className="text-xs ${brand.sub}">Dernière mise à jour : 21/09/2025.</p>
       </div>
     </section>
   );
@@ -235,8 +284,8 @@ function Footer() {
           <PixteryxLogo size={20} wordmark={false} /> <span>© {new Date().getFullYear()} Pixteryx. Tous droits réservés.</span>
         </div>
         <div className="flex items-center gap-6">
-          <a href="#" className="hover:text-sky-300">Mentions légales</a>
-          <a href="#" className="hover:text-sky-300">Politique de confidentialité</a>
+          <a href="#mentions" className="hover:text-sky-300">Mentions légales</a>
+          <a href="#privacy" className="hover:text-sky-300">Politique de confidentialité</a>
         </div>
       </div>
     </footer>
@@ -251,6 +300,8 @@ export default function App() {
       <Services />
       <About />
       <Contact />
+      <Mentions />
+      <Privacy />
       <Footer />
     </main>
   );
