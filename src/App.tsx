@@ -1,4 +1,4 @@
-import { useState, type JSX } from "react";
+import { useState, useEffect, type JSX } from "react";
 import { motion } from "framer-motion";
 import { ArrowRight, Brain, Camera, Code, LineChart, Phone, Mail, MapPin } from "lucide-react";
 
@@ -37,16 +37,9 @@ function PixteryxLogo({ size = 40, wordmark = true }: { size?: number; wordmark?
           strokeLinejoin="round"
         />
         {/* X pupil */}
-        <path
-          d="M28 26l8 12M36 26l-8 12"
-          stroke={stroke}
-          strokeWidth={4}
-          strokeLinecap="round"
-        />
+        <path d="M28 26l8 12M36 26l-8 12" stroke={stroke} strokeWidth={4} strokeLinecap="round" />
       </svg>
-      {wordmark && (
-        <span className="font-semibold tracking-tight text-2xl text-sky-400">Pixteryx</span>
-      )}
+      {wordmark && <span className="font-semibold tracking-tight text-2xl text-sky-400">Pixteryx</span>}
     </div>
   );
 }
@@ -80,7 +73,7 @@ function Hero() {
     <section id="top" className={`${brand.bg} ${brand.text} relative overflow-hidden`}>
       <div className="max-w-6xl mx-auto px-4 py-20 md:py-28 grid md:grid-cols-2 gap-10 items-center">
         <motion.div initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.6 }}>
-          <div className="inline-flex items-center gap-2 rounded-full border border-white/10 px-3 py-1 text-xs ${brand.sub}">
+          <div className={`inline-flex items-center gap-2 rounded-full border border-white/10 px-3 py-1 text-xs ${brand.sub}`}>
             <span className="text-sky-400">IA • Data • Vision</span>
             <span className="text-slate-500">par Pixteryx</span>
           </div>
@@ -144,10 +137,10 @@ function ServiceCard({ icon, title, desc }: { icon: JSX.Element; title: string; 
 
 function Services() {
   return (
-    <section id="services" className="${brand.bg} ${brand.text}">
+    <section id="services" className={`${brand.bg} ${brand.text}`}>
       <div className="max-w-6xl mx-auto px-4 py-16 md:py-24">
         <h2 className="text-3xl md:text-4xl font-bold">Nos services</h2>
-        <p className="mt-2 ${brand.sub}">Du prototype au déploiement en production.</p>
+        <p className={`mt-2 ${brand.sub}`}>Du prototype au déploiement en production.</p>
         <div className="mt-10 grid md:grid-cols-2 lg:grid-cols-3 gap-6">
           <ServiceCard icon={<Brain className="text-sky-400" />} title="IA & ML" desc="Modèles de classification, régression, NLP et deep learning. Mise en production fiable (MLOps)." />
           <ServiceCard icon={<Camera className="text-sky-400" />} title="Vision par ordinateur" desc="Détection/segmentation, OCR, inspection qualité, traitement d'images 2D/3D." />
@@ -163,7 +156,7 @@ function Services() {
 
 function About() {
   return (
-    <section id="about" className="${brand.bg} ${brand.text}">
+    <section id="about" className={`${brand.bg} ${brand.text}`}>
       <div className="max-w-6xl mx-auto px-4 py-16 md:py-24 grid md:grid-cols-2 gap-10 items-start">
         <div>
           <h2 className="text-3xl md:text-4xl font-bold">À propos</h2>
@@ -174,7 +167,7 @@ function About() {
             Expertise : traitement du signal & d’images, apprentissage automatique, développement web/mobile. Nous transformons vos données en décisions à impact.
           </p>
         </div>
-        <div className="rounded-3xl border border-white/10 p-6 ${brand.card}">
+        <div className={`rounded-3xl border border-white/10 p-6 ${brand.card}`}>
           <h3 className="text-xl font-semibold">Nos valeurs</h3>
           <ul className="mt-3 space-y-2 text-slate-300 list-disc list-inside">
             <li>Innovation continue</li>
@@ -184,7 +177,7 @@ function About() {
           </ul>
           <div className="mt-6">
             <h4 className="font-semibold">Devise</h4>
-            <p className="${brand.sub}">« La puissance des données, la précision de la vision. »</p>
+            <p className={`${brand.sub}`}>« La puissance des données, la précision de la vision. »</p>
           </div>
         </div>
       </div>
@@ -193,39 +186,222 @@ function About() {
 }
 
 function Contact() {
+  const [form, setForm] = useState({ name: "", email: "", message: "" });
+  const [errors, setErrors] = useState<any>({});
+  const [status, setStatus] = useState<"idle" | "sending" | "success" | "error">("idle");
+
+  const [captcha, setCaptcha] = useState(() => {
+    const a = Math.floor(1 + Math.random() * 8);
+    const b = Math.floor(1 + Math.random() * 8);
+    return { a, b };
+  });
+  const [captchaInput, setCaptchaInput] = useState("");
+
+  const regenCaptcha = () => {
+    setCaptcha(() => {
+      const a = Math.floor(1 + Math.random() * 8);
+      const b = Math.floor(1 + Math.random() * 8);
+      return { a, b };
+    });
+    setCaptchaInput("");
+  };
+
+  const [showToast, setShowToast] = useState(false);
+  useEffect(() => {
+    if (status === "success") {
+      setShowToast(true);
+      const t = setTimeout(() => setShowToast(false), 3500);
+      return () => clearTimeout(t);
+    }
+  }, [status]);
+
+  const handleReset = () => {
+    setForm({ name: "", email: "", message: "" });
+    setErrors({});
+    setCaptchaInput("");
+    setStatus("idle");
+  };
+
+  const FORMSPREE_ENDPOINT = "https://formspree.io/f/mrbyzbep"; // 
+  const isEmailOk = (email: string) => {
+    const at = email.indexOf("@");
+    const dot = email.lastIndexOf(".");
+    return at > 0 && dot > at + 1 && dot < email.length - 1;
+  };
+
+  const validate = () => {
+    const e: any = {};
+    if (!form.name.trim()) e.name = "Votre nom est requis";
+    if (!isEmailOk(form.email)) e.email = "Adresse e-mail invalide";
+    if (form.message.trim().length < 20) e.message = "Le message doit contenir au moins 20 caractères";
+    const expected = (captcha.a + captcha.b).toString();
+    if (captchaInput.trim() !== expected) e.captcha = "Résultat incorrect";
+    setErrors(e);
+    return Object.keys(e).length === 0;
+  };
+
+  const handleChange = (e: any) => {
+    setForm({ ...form, [e.target.name]: e.target.value });
+    if (status !== "idle") setStatus("idle");
+  };
+
+  const handleSubmit = async (e: any) => {
+    e.preventDefault();
+    if (!validate()) return;
+    setStatus("sending");
+    try {
+      const fd = new FormData();
+      fd.append("name", form.name);
+      fd.append("_replyto", form.email);
+      fd.append("message", form.message);
+      fd.append("_subject", "Nouveau message – pixteryx.fr");
+      const res = await fetch(FORMSPREE_ENDPOINT, {
+        method: "POST",
+        headers: { Accept: "application/json" },
+        body: fd,
+      });
+      if (res.ok) {
+        setStatus("success");
+        setForm({ name: "", email: "", message: "" });
+        setErrors({});
+        regenCaptcha();
+      } else {
+        setStatus("error");
+      }
+    } catch {
+      setStatus("error");
+    }
+  };
+
+  const baseInput = "px-3 py-2 rounded-xl bg-slate-800/60 border focus:outline-none focus:ring-2 ";
+
   return (
-    <section id="contact" className="${brand.bg} ${brand.text}">
+    <section id="contact" className={`${brand.bg} ${brand.text}`}>
       <div className="max-w-6xl mx-auto px-4 py-16 md:py-24 grid md:grid-cols-2 gap-10">
         <div>
           <h2 className="text-3xl md:text-4xl font-bold">Contact</h2>
-          <p className="mt-3 ${brand.sub}">Parlez-nous de votre besoin, nous revenons vers vous rapidement.</p>
+          <p className={`mt-3 ${brand.sub}`}>Parlez-nous de votre besoin, nous revenons vers vous rapidement.</p>
           <div className="mt-6 space-y-3 text-slate-300">
             <p className="flex items-center gap-2"><MapPin size={18} className="text-sky-400" /> 143 Grande Rue Saint Michel, 31400 Toulouse</p>
             <p className="flex items-center gap-2"><Phone size={18} className="text-sky-400" /> 07 66 70 53 30</p>
             <p className="flex items-center gap-2"><Mail size={18} className="text-sky-400" /> <a href="mailto:contact@pixteryx.fr" className="underline">contact@pixteryx.fr</a></p>
           </div>
         </div>
-        <form className="rounded-3xl border border-white/10 p-6 ${brand.card} grid gap-3" action="https://formspree.io/f/mrbyzbep" method="POST">
+
+        <form className={`rounded-3xl border border-white/10 p-6 ${brand.card} grid gap-3`} onSubmit={handleSubmit} noValidate>
           <label className="grid gap-1">
             <span>Nom</span>
-            <input name="name" className="px-3 py-2 rounded-xl bg-slate-800/60 border border-white/10 focus:outline-none focus:ring-2 ring-sky-400/40" placeholder="Votre nom" required />
+            <input
+              name="name"
+              value={form.name}
+              onChange={handleChange}
+              className={`${baseInput} border-white/10 focus:ring-sky-400/40 ${errors.name ? "border-red-500 focus:ring-red-400/40" : ""}`}
+              placeholder="Votre nom"
+              aria-invalid={!!errors.name}
+              aria-describedby={errors.name ? "name-error" : undefined}
+              required
+            />
+            {errors.name && <p id="name-error" className="text-sm text-red-400">{errors.name}</p>}
           </label>
+
           <label className="grid gap-1">
             <span>Email</span>
-            <input type="email" name="_replyto" className="px-3 py-2 rounded-xl bg-slate-800/60 border border-white/10 focus:outline-none focus:ring-2 ring-sky-400/40" placeholder="vous@entreprise.com" required />
+            <input
+              type="email"
+              name="email"
+              value={form.email}
+              onChange={handleChange}
+              className={`${baseInput} border-white/10 focus:ring-sky-400/40 ${errors.email ? "border-red-500 focus:ring-red-400/40" : ""}`}
+              placeholder="vous@entreprise.com"
+              aria-invalid={!!errors.email}
+              aria-describedby={errors.email ? "email-error" : undefined}
+              required
+            />
+            {errors.email && <p id="email-error" className="text-sm text-red-400">{errors.email}</p>}
           </label>
+
           <label className="grid gap-1">
             <span>Message</span>
-            <textarea name="message" rows={5} className="px-3 py-2 rounded-xl bg-slate-800/60 border border-white/10 focus:outline-none focus:ring-2 ring-sky-400/40" placeholder="Décrivez votre projet..." required />
+            <textarea
+              name="message"
+              rows={5}
+              value={form.message}
+              onChange={handleChange}
+              className={`${baseInput} border-white/10 focus:ring-sky-400/40 ${errors.message ? "border-red-500 focus:ring-red-400/40" : ""}`}
+              placeholder="Décrivez votre projet... (minimum 20 caractères)"
+              aria-invalid={!!errors.message}
+              aria-describedby={errors.message ? "message-error" : undefined}
+              minLength={20}
+              maxLength={1000}
+              required
+            />
+            <div className={`text-right text-xs ${form.message.length < 20 ? "text-red-400" : "text-slate-500"}`}>{form.message.length}/1000</div>
+            {errors.message && <p id="message-error" className="text-sm text-red-400">{errors.message}</p>}
           </label>
-          {/* anti-spam honeypot */}
+
+          <label className="grid gap-1">
+            <span>Vérification anti-robot : {captcha.a} + {captcha.b} = ?</span>
+            <input
+              name="captcha"
+              inputMode="numeric"
+              value={captchaInput}
+              onChange={(e) => setCaptchaInput(e.target.value.replace(/[^0-9]/g, ""))}
+              className={`${baseInput} border-white/10 focus:ring-sky-400/40 ${errors.captcha ? "border-red-500 focus:ring-red-400/40" : ""}`}
+              placeholder="Votre réponse"
+              aria-invalid={!!errors.captcha}
+              aria-describedby={errors.captcha ? "captcha-error" : undefined}
+              required
+            />
+            <button type="button" onClick={regenCaptcha} className="justify-self-start text-xs underline text-sky-400 hover:text-sky-300">Rafraîchir le captcha</button>
+            {errors.captcha && <p id="captcha-error" className="text-sm text-red-400">{errors.captcha}</p>}
+          </label>
+
           <input type="text" name="_gotcha" className="hidden" tabIndex={-1} autoComplete="off" />
-          {/* subject personnalisé */}
-          <input type="hidden" name="_subject" value="Nouveau message – pixteryx.fr" />
-          <button className="mt-2 inline-flex items-center justify-center gap-2 px-5 py-3 rounded-xl bg-sky-500 text-slate-900 font-semibold hover:brightness-110">
-            Envoyer <ArrowRight size={18} />
+
+          <button
+            disabled={status === "sending"}
+            className="mt-2 inline-flex items-center justify-center gap-2 px-5 py-3 rounded-xl bg-sky-500 text-slate-900 font-semibold hover:brightness-110 disabled:opacity-60"
+          >
+            {status === "sending" ? "Envoi…" : <>Envoyer <ArrowRight size={18} /></>}
           </button>
-          <p className="text-xs ${brand.sub}">En envoyant, vous acceptez notre <a className="underline" href="#privacy">politique de confidentialité</a>.</p>
+
+          <button
+            type="button"
+            onClick={handleReset}
+            className="inline-flex items-center justify-center gap-2 px-5 py-3 rounded-xl border border-white/10 hover:border-sky-400/50"
+          >
+            Réinitialiser
+          </button>
+
+          <div aria-live="polite">
+            {status === "success" && (
+              <motion.div
+                initial={{ opacity: 0, y: 6, scale: 0.98 }}
+                animate={{ opacity: 1, y: 0, scale: 1 }}
+                transition={{ type: "spring", stiffness: 160, damping: 16 }}
+                className="mt-3 rounded-xl border border-green-500/30 bg-green-500/10 px-4 py-3 text-green-300"
+              >
+                Merci, votre message a bien été envoyé. Nous vous répondrons rapidement.
+              </motion.div>
+            )}
+            {status === "error" && (
+              <div className="mt-3 rounded-xl border border-red-500/30 bg-red-500/10 px-4 py-3 text-red-300">
+                Une erreur s’est produite. Réessayez plus tard ou écrivez-nous à <a className="underline" href="mailto:contact@pixteryx.fr">contact@pixteryx.fr</a>.
+              </div>
+            )}
+          </div>
+
+          {showToast && (
+            <motion.div
+              initial={{ opacity: 0, y: -8 }}
+              animate={{ opacity: 1, y: 0 }}
+              className="fixed top-4 right-4 z-50 rounded-xl border border-green-500/40 bg-slate-900/90 backdrop-blur px-4 py-3 text-green-300 shadow-lg"
+            >
+              Message envoyé ✅
+            </motion.div>
+          )}
+
+          <p className={`text-xs ${brand.sub}`}>En envoyant, vous acceptez notre <a className="underline" href="#privacy">politique de confidentialité</a>.</p>
         </form>
       </div>
     </section>
@@ -238,7 +414,7 @@ function Mentions() {
     <section id="mentions" className={`${brand.bg} ${brand.text}`}>
       <div className="max-w-6xl mx-auto px-4 py-16 md:py-24 prose prose-invert">
         <h2>Mentions légales</h2>
-        <p><strong>Éditeur :</strong> Pixteryx (SASU). Adresse : 143 Grande Rue Saint Michel, 31400 Toulouse, France. Tél. : 07 66 70 53 30. E‑mail : <a href="mailto:contact@pixteryx.fr">contact@pixteryx.fr</a>.</p>
+        <p><strong>Éditeur :</strong> Pixteryx (SASU). Adresse : 143 Grande Rue Saint Michel, 31400 Toulouse, France. Tél. : 07 66 70 53 30. E-mail : <a href="mailto:contact@pixteryx.fr">contact@pixteryx.fr</a>.</p>
         <p><strong>Directeur de la publication :</strong> [Nom du dirigeant].</p>
         <p><strong>Immatriculation :</strong> SIREN/SIRET : [à compléter]. RCS : [Ville et numéro]. Capital social : [€].</p>
         <p><strong>Hébergement :</strong> Vercel Inc. (vercel.com).</p>
@@ -246,7 +422,7 @@ function Mentions() {
         <p>Le contenu du site (textes, logos, éléments graphiques) est la propriété de Pixteryx ou de ses partenaires. Toute reproduction non autorisée est interdite.</p>
         <h3>Responsabilité</h3>
         <p>Pixteryx s’efforce d’assurer l’exactitude des informations publiées mais ne saurait être tenue responsable des erreurs ou omissions.</p>
-        <p className="text-xs ${brand.sub}">Dernière mise à jour : 21/09/2025.</p>
+        <p className={`text-xs ${brand.sub}`}>Dernière mise à jour : 21/09/2025.</p>
       </div>
     </section>
   );
@@ -259,7 +435,7 @@ function Privacy() {
         <h2>Politique de confidentialité</h2>
         <p>Pixteryx respecte le Règlement Général sur la Protection des Données (RGPD) et la loi française.</p>
         <h3>Données collectées</h3>
-        <p>Via le formulaire de contact : nom, adresse e‑mail, contenu du message. Finalités : répondre à vos demandes et assurer le suivi commercial. Base légale : intérêts légitimes et mesures précontractuelles.</p>
+        <p>Via le formulaire de contact : nom, adresse e-mail, contenu du message. Finalités : répondre à vos demandes et assurer le suivi commercial. Base légale : intérêts légitimes et mesures précontractuelles.</p>
         <h3>Destinataires & hébergement</h3>
         <p>Les données sont traitées par Pixteryx et hébergées chez nos prestataires (hébergeur web/Vercel, outil de formulaire le cas échéant). Nous ne revendons pas vos données.</p>
         <h3>Durées de conservation</h3>
@@ -270,7 +446,7 @@ function Privacy() {
         <p>Par défaut, nous n’utilisons pas de cookies de suivi. Si des outils d’analyse sont ajoutés, une bannière d’information et un paramétrage des consentements seront mis en place.</p>
         <h3>Sécurité</h3>
         <p>Nous mettons en œuvre des mesures raisonnables pour protéger vos données. Les transferts en dehors de l’UE (par nos prestataires) sont encadrés par des garanties appropriées.</p>
-        <p className="text-xs ${brand.sub}">Dernière mise à jour : 21/09/2025.</p>
+        <p className={`text-xs ${brand.sub}`}>Dernière mise à jour : 21/09/2025.</p>
       </div>
     </section>
   );
@@ -278,8 +454,8 @@ function Privacy() {
 
 function Footer() {
   return (
-    <footer className="${brand.bg} ${brand.text} border-t border-white/10">
-      <div className="max-w-6xl mx-auto px-4 py-8 flex flex-col md:flex-row items-center justify-between gap-4 text-sm ${brand.sub}">
+    <footer className={`${brand.bg} ${brand.text} border-t border-white/10`}>
+      <div className={`max-w-6xl mx-auto px-4 py-8 flex flex-col md:flex-row items-center justify-between gap-4 text-sm ${brand.sub}`}>
         <div className="flex items-center gap-2">
           <PixteryxLogo size={20} wordmark={false} /> <span>© {new Date().getFullYear()} Pixteryx. Tous droits réservés.</span>
         </div>
@@ -294,7 +470,7 @@ function Footer() {
 
 export default function App() {
   return (
-    <main className={`${brand.bg} ${brand.text} min-h-screen`}>      
+    <main className={`${brand.bg} ${brand.text} min-h-screen`}>
       <NavBar />
       <Hero />
       <Services />
