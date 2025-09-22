@@ -69,3 +69,26 @@ button:focus-visible {
     background-color: #f9f9f9;
   }
 }
+
+/* Skip link (accessibilité) */
+.skip-link {
+  position: absolute;
+  left: -9999px;
+  top: auto;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+}
+.skip-link:focus {
+  left: 1rem;
+  top: 1rem;
+  width: auto;
+  height: auto;
+  overflow: visible;
+  background: #0ea5e9;
+  color: #0b1220;
+  padding: .5rem .75rem;
+  border-radius: .5rem;
+  z-index: 1000;
+  outline: none;
+}
