@@ -1,0 +1,11 @@
+<!-- public/favicon.svg -->
+<svg width="64" height="64" viewBox="0 0 64 64" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <rect width="64" height="64" rx="14" fill="#0B1220"/>
+  <!-- œil -->
+  <path d="M10 32c6-10 18-16 22-16s16 6 22 16c-6 10-18 16-22 16S16 42 10 32Z"
+        stroke="#38BDF8" stroke-width="4" fill="none" stroke-linejoin="round"/>
+  <!-- X (pupille) -->
+  <path d="M28 26l8 12M36 26l-8 12" stroke="#38BDF8" stroke-width="4" stroke-linecap="round"/>
+  <!-- petit pixel en haut-gauche -->
+  <rect x="8" y="8" width="8" height="8" rx="1.5" fill="#38BDF8"/>
+</svg>
