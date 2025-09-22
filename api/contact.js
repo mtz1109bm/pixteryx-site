@@ -1,14 +1,17 @@
-export default async function handler(req, res) {
+// api/contact.js
+const { limit } = require("./_lib/rateLimit");
+
+module.exports = async function handler(req, res) {
   // --- CORS ---
   const origin = req.headers.origin || "";
   const allowed = [
     process.env.ALLOWED_ORIGIN,
     "https://pixteryx.fr",
     "https://www.pixteryx.fr",
-    "http://localhost:5173"
+    "http://localhost:5173",
   ].filter(Boolean);
-  const okOrigin = allowed.some((o) => o === "*" || o === origin);
 
+  const okOrigin = allowed.some((o) => o === "*" || o === origin);
   const setCORS = () => {
     res.setHeader("Access-Control-Allow-Origin", okOrigin ? origin : allowed[0] || "*");
     res.setHeader("Vary", "Origin");
@@ -30,16 +33,30 @@ export default async function handler(req, res) {
   setCORS();
 
   try {
-    // Parse JSON (Vercel Node parse d’habitude, sinon fallback)
+    // -------- Rate limit (par IP + UA) --------
+    const ip =
+      (req.headers["x-forwarded-for"] || "").toString().split(",")[0]?.trim() ||
+      req.socket?.remoteAddress ||
+      "0.0.0.0";
+    const ua = (req.headers["user-agent"] || "").toString().slice(0, 80);
+    const key = `ip:${ip}|ua:${ua}`;
+    const rl = await limit(key);
+
+    res.setHeader("X-RateLimit-Limit", String(rl.limit ?? 5));
+    res.setHeader("X-RateLimit-Remaining", String(Math.max(0, rl.remaining ?? 0)));
+    if (!rl.success) {
+      return res.status(429).json({ error: "Trop de requêtes, réessayez un peu plus tard." });
+    }
+
+    // -------- Parse & validations --------
     const body = typeof req.body === "string" ? JSON.parse(req.body) : req.body || {};
     const { name = "", email = "", message = "", token = "", gotcha = "" } = body;
 
-    // Honeypot => on prétend que c'est ok, mais on ignore
+    // Honeypot (silencieux)
     if (gotcha && gotcha.trim() !== "") {
-      return res.status(200).json({ ok: true }); // bot piégé
+      return res.status(200).json({ ok: true });
     }
 
-    // Validations simples
     const isEmailOk = (em) => {
       const at = em.indexOf("@");
       const dot = em.lastIndexOf(".");
@@ -49,11 +66,7 @@ export default async function handler(req, res) {
       return res.status(400).json({ error: "Invalid input" });
     }
 
-    // Verify Turnstile
-    const ip =
-      (req.headers["x-forwarded-for"] || "").toString().split(",")[0]?.trim() ||
-      req.socket?.remoteAddress ||
-      "";
+    // -------- Turnstile vérif --------
     const secret = process.env.TURNSTILE_SECRET_KEY;
     if (!secret) {
       return res.status(500).json({ error: "Server misconfigured (no Turnstile secret)" });
@@ -69,12 +82,11 @@ export default async function handler(req, res) {
       }),
     });
     const verifData = await verifResp.json();
-
     if (!verifData.success) {
       return res.status(400).json({ error: "Captcha failed", details: verifData["error-codes"] || [] });
     }
 
-    // Forward to Formspree
+    // -------- Transfert à Formspree --------
     const endpoint = process.env.FORMSPREE_ENDPOINT;
     if (!endpoint) {
       return res.status(500).json({ error: "Server misconfigured (no Formspree endpoint)" });
@@ -101,4 +113,4 @@ export default async function handler(req, res) {
   } catch (e) {
     return res.status(500).json({ error: "Server error" });
   }
-}
+};
