@@ -4,7 +4,7 @@ import { Turnstile } from "../components/Turnstile";
 import { ArrowRight, Calculator } from "lucide-react";
 import { track } from "../lib/analytics";
 
-const SITE_KEY = import.meta.env.VITE_TURNSTILE_SITE_KEY as string;
+const SITE_KEY = import.meta.env.VITE_TURNSTILE_SITE_KEY as string | undefined;
 
 type Service = "ia-ml" | "vision" | "data-analytics" | "dev-web-mobile" | "signal" | "conseil-audit";
 type Complexity = "low" | "med" | "high";

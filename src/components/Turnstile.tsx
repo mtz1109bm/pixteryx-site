@@ -12,15 +12,17 @@ export function Turnstile({
   keyProp,
   theme = "dark",
 }: {
-  siteKey: string;
+  siteKey?: string;
   onToken: (t: string) => void;
-  keyProp: number; // change this to force re-render
+  keyProp: number;
   theme?: "dark" | "light" | "auto";
 }) {
   const ref = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
-    onToken(""); // reset token when rerendering
+    onToken("");
+    if (!siteKey) return; // ✅ pas de clé → pas de widget (mais la page s'affiche)
+
     const el = ref.current!;
     const render = () => {
       if (!window.turnstile) return;
@@ -44,9 +46,18 @@ export function Turnstile({
     }
 
     return () => {
-      el.innerHTML = ""; // cleanup widget
+      el.innerHTML = "";
     };
   }, [siteKey, onToken, keyProp, theme]);
+
+  if (!siteKey) {
+    // ✅ Affiche une note douce en dev si pas de clé
+    return (
+      <div className="text-xs text-amber-300/90">
+        (Turnstile désactivé — définissez VITE_TURNSTILE_SITE_KEY pour activer le captcha)
+      </div>
+    );
+  }
 
   return <div ref={ref} className="cf-turnstile" />;
 }

@@ -2,6 +2,7 @@ import { motion } from "framer-motion";
 import { Brain, Camera, LineChart, Code } from "lucide-react";
 import { brand } from "../brand";
 import { Link } from "react-router-dom";
+import type { JSX } from "react";
 
 function ServiceCard({ to, icon, title, desc }: { to: string; icon: JSX.Element; title: string; desc: string }) {
   return (
