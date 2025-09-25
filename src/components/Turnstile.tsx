@@ -1,10 +1,6 @@
 import { useEffect, useRef } from "react";
 
-declare global {
-  interface Window {
-    turnstile?: any;
-  }
-}
+declare global { interface Window { turnstile?: any } }
 
 export function Turnstile({
   siteKey,
@@ -21,8 +17,7 @@ export function Turnstile({
 
   useEffect(() => {
     onToken("");
-    if (!siteKey) return; // ✅ pas de clé → pas de widget (mais la page s'affiche)
-
+    if (!siteKey) return; // ✅ pas de clé -> pas de widget et PAS de message
     const el = ref.current!;
     const render = () => {
       if (!window.turnstile) return;
@@ -33,7 +28,6 @@ export function Turnstile({
         "refresh-expired": "auto",
       });
     };
-
     if (!window.turnstile) {
       const s = document.createElement("script");
       s.src = "https://challenges.cloudflare.com/turnstile/v0/api.js";
@@ -44,20 +38,10 @@ export function Turnstile({
     } else {
       render();
     }
-
-    return () => {
-      el.innerHTML = "";
-    };
+    return () => { el.innerHTML = ""; };
   }, [siteKey, onToken, keyProp, theme]);
 
-  if (!siteKey) {
-    // ✅ Affiche une note douce en dev si pas de clé
-    return (
-      <div className="text-xs text-amber-300/90">
-        (Turnstile désactivé — définissez VITE_TURNSTILE_SITE_KEY pour activer le captcha)
-      </div>
-    );
-  }
+  if (!siteKey) return null; // ✅ silence total
 
   return <div ref={ref} className="cf-turnstile" />;
 }

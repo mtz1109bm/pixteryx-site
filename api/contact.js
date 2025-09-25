@@ -1,5 +1,5 @@
 // api/contact.js
-const { limit } = require("./_lib/rateLimit");
+const { limit } = require("../_lib/rateLimit");
 
 module.exports = async function handler(req, res) {
   // --- CORS ---
@@ -9,6 +9,7 @@ module.exports = async function handler(req, res) {
     "https://pixteryx.fr",
     "https://www.pixteryx.fr",
     "http://localhost:5173",
+    "http://localhost:5174", // Vite peut changer de port
   ].filter(Boolean);
 
   const okOrigin = allowed.some((o) => o === "*" || o === origin);
@@ -19,44 +20,38 @@ module.exports = async function handler(req, res) {
     res.setHeader("Access-Control-Allow-Headers", "Content-Type");
   };
 
-  if (req.method === "OPTIONS") {
-    setCORS();
-    res.status(204).end();
-    return;
-  }
-  if (req.method !== "POST") {
-    setCORS();
-    res.status(405).json({ error: "Method not allowed" });
-    return;
-  }
-
+  if (req.method === "OPTIONS") { setCORS(); res.status(204).end(); return; }
+  if (req.method !== "POST") { setCORS(); res.status(405).json({ error: "Method not allowed" }); return; }
   setCORS();
 
   try {
-    // -------- Rate limit (par IP + UA) --------
+    // --- Rate limit (IP + UA) ---
     const ip =
       (req.headers["x-forwarded-for"] || "").toString().split(",")[0]?.trim() ||
       req.socket?.remoteAddress ||
       "0.0.0.0";
     const ua = (req.headers["user-agent"] || "").toString().slice(0, 80);
-    const key = `ip:${ip}|ua:${ua}`;
-    const rl = await limit(key);
-
+    const rl = await limit(`ip:${ip}|ua:${ua}`);
     res.setHeader("X-RateLimit-Limit", String(rl.limit ?? 5));
     res.setHeader("X-RateLimit-Remaining", String(Math.max(0, rl.remaining ?? 0)));
-    if (!rl.success) {
-      return res.status(429).json({ error: "Trop de requêtes, réessayez un peu plus tard." });
-    }
+    if (!rl.success) return res.status(429).json({ error: "Trop de requêtes, réessayez plus tard." });
 
-    // -------- Parse & validations --------
-    const body = typeof req.body === "string" ? JSON.parse(req.body) : req.body || {};
-    const { name = "", email = "", message = "", token = "", gotcha = "" } = body;
+    // --- Parse body ---
+    const body = typeof req.body === "string" ? JSON.parse(req.body) : (req.body || {});
+    const {
+      name = "",
+      email = "",
+      message = "",
+      token = "",
+      gotcha = "", // honeypot invisible
+    } = body;
 
-    // Honeypot (silencieux)
+    // --- Honeypot silencieux ---
     if (gotcha && gotcha.trim() !== "") {
       return res.status(200).json({ ok: true });
     }
 
+    // --- Validations min ---
     const isEmailOk = (em) => {
       const at = em.indexOf("@");
       const dot = em.lastIndexOf(".");
@@ -66,31 +61,32 @@ module.exports = async function handler(req, res) {
       return res.status(400).json({ error: "Invalid input" });
     }
 
-    // -------- Turnstile vérif --------
+    // --- Turnstile (bypass en dev local si pas de secret) ---
     const secret = process.env.TURNSTILE_SECRET_KEY;
-    if (!secret) {
-      return res.status(500).json({ error: "Server misconfigured (no Turnstile secret)" });
+    const isLocalDev = /^http:\/\/(localhost|127\.0\.0\.1)(:\d+)?$/.test(origin || "");
+
+    if (secret) {
+      if (!token) return res.status(400).json({ error: "Captcha required" });
+
+      const vf = await fetch("https://challenges.cloudflare.com/turnstile/v0/siteverify", {
+        method: "POST",
+        headers: { "content-type": "application/x-www-form-urlencoded" },
+        body: new URLSearchParams({ secret, response: token, remoteip: ip }),
+      });
+      const data = await vf.json();
+      if (!data.success) {
+        return res.status(400).json({ error: "Captcha failed", details: data["error-codes"] || [] });
+      }
+    } else {
+      if (!isLocalDev) {
+        return res.status(500).json({ error: "Server misconfigured (no Turnstile secret)" });
+      }
+      // ✅ Local dev sans secret : pas de vérif captcha
     }
 
-    const verifResp = await fetch("https://challenges.cloudflare.com/turnstile/v0/siteverify", {
-      method: "POST",
-      headers: { "content-type": "application/x-www-form-urlencoded" },
-      body: new URLSearchParams({
-        secret,
-        response: token,
-        remoteip: ip,
-      }),
-    });
-    const verifData = await verifResp.json();
-    if (!verifData.success) {
-      return res.status(400).json({ error: "Captcha failed", details: verifData["error-codes"] || [] });
-    }
-
-    // -------- Transfert à Formspree --------
-    const endpoint = process.env.FORMSPREE_ENDPOINT;
-    if (!endpoint) {
-      return res.status(500).json({ error: "Server misconfigured (no Formspree endpoint)" });
-    }
+    // --- Envoi vers Formspree ---
+    const endpoint = process.env.FORMSPREE_CONTACT_ENDPOINT || process.env.FORMSPREE_ENDPOINT;
+    if (!endpoint) return res.status(500).json({ error: "No form endpoint configured" });
 
     const form = new URLSearchParams();
     form.append("name", name);
@@ -105,12 +101,12 @@ module.exports = async function handler(req, res) {
     });
 
     if (!fr.ok) {
-      const txt = await fr.text();
-      return res.status(502).json({ error: "Form provider error", details: txt.slice(0, 300) });
+      const t = await fr.text();
+      return res.status(502).json({ error: "Form provider error", details: t.slice(0, 300) });
     }
 
     return res.status(200).json({ ok: true });
-  } catch (e) {
+  } catch (_e) {
     return res.status(500).json({ error: "Server error" });
   }
 };

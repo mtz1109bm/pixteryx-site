@@ -5,7 +5,7 @@ import { motion } from "framer-motion";
 import { Turnstile } from "../components/Turnstile";
 import { track } from "../lib/analytics";
 
-const SITE_KEY = import.meta.env.VITE_TURNSTILE_SITE_KEY as string;
+const SITE_KEY = import.meta.env.VITE_TURNSTILE_SITE_KEY as string | undefined;
 
 export default function Contact({ onOpenPrivacy }: { onOpenPrivacy: () => void }) {
   const [form, setForm] = useState({ name: "", email: "", message: "" });

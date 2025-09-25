@@ -12,6 +12,7 @@
   "dependencies": {
     "@dr.pogodin/react-helmet": "^3.0.4",
     "@formspree/react": "^3.0.0",
+    "@sentry/react": "^10.14.0",
     "@upstash/ratelimit": "^2.0.6",
     "@upstash/redis": "^1.35.4",
     "framer-motion": "^12.23.16",

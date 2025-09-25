@@ -12,6 +12,7 @@ import ServiceDetail from "./pages/ServiceDetail";
 import Cases from "./pages/Cases";
 import CaseDetail from "./pages/CaseDetail";
 import { StickyActions } from "./components/StickyActions";
+import NotFound from "./pages/NotFound";
 
 const MentionsContent = lazy(() => import("./pages/MentionsContent"));
 const PrivacyContent = lazy(() => import("./pages/PrivacyContent"));
@@ -43,8 +44,7 @@ export default function App() {
           <Route path="/cases/:slug" element={<CaseDetail />} />
           <Route path="/devis-rapide" element={<Quote />} />
           <Route path="/faq" element={<FAQ />} />
-          {/* fallback simple (retour home) */}
-          <Route path="*" element={<Home onOpenPrivacy={() => setOpenPrivacy(true)} />} />
+          <Route path="*" element={<NotFound />} />
         </Routes>
 
         <Footer

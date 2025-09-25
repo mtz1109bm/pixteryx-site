@@ -84,7 +84,7 @@ export default function Quote() {
     if (!name.trim()) e.name = "Votre nom est requis";
     const at = email.indexOf("@"); const dot = email.lastIndexOf(".");
     if (!(at > 0 && dot > at + 1 && dot < email.length - 1)) e.email = "Adresse e-mail invalide";
-    if (!token) e.token = "Vérification requise";
+    if (SITE_KEY && !token) e.token = "Vérification requise";
     setErrors(e);
     return Object.keys(e).length === 0;
   };
@@ -208,7 +208,9 @@ export default function Quote() {
 
             <div>
               <Turnstile siteKey={SITE_KEY} onToken={t=>setToken(t)} keyProp={widgetKey} theme="dark" />
-              {errors.token && <p className="text-sm text-red-400 mt-1">{errors.token}</p>}
+                {SITE_KEY && errors.token && (
+                <p className="text-sm text-red-400 mt-1">{errors.token}</p>
+                )}
             </div>
 
             <button disabled={status==="sending"} className="mt-2 inline-flex items-center justify-center gap-2 px-5 py-3 rounded-xl bg-sky-500 text-slate-900 font-semibold hover:brightness-110 disabled:opacity-60">
