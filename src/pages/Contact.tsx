@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, useCallback } from "react";
 import { brand } from "../brand";
 import { MapPin, Phone, Mail, ArrowRight } from "lucide-react";
 import { motion } from "framer-motion";
@@ -9,12 +9,13 @@ const SITE_KEY = import.meta.env.VITE_TURNSTILE_SITE_KEY as string | undefined;
 
 export default function Contact({ onOpenPrivacy }: { onOpenPrivacy: () => void }) {
   const [form, setForm] = useState({ name: "", email: "", message: "" });
-  const [errors, setErrors] = useState<any>({});
+  const [errors, setErrors] = useState<Record<string, string>>({});
   const [status, setStatus] = useState<"idle" | "sending" | "success" | "error">("idle");
 
   // Turnstile
   const [tsToken, setTsToken] = useState("");
-  const [widgetKey, setWidgetKey] = useState(0); // change to re-render widget
+  const [widgetKey, setWidgetKey] = useState(0); // change to re-render widget (volontaire)
+  const handleTsToken = useCallback((t: string) => setTsToken(t), []); // ✅ stable (évite les re-renders du widget)
 
   const [showToast, setShowToast] = useState(false);
   useEffect(() => {
@@ -31,6 +32,7 @@ export default function Contact({ onOpenPrivacy }: { onOpenPrivacy: () => void }
     setForm({ name: "", email: "", message: "" });
     setErrors({});
     setStatus("idle");
+    setTsToken("");
     regenWidget();
   };
 
@@ -41,11 +43,11 @@ export default function Contact({ onOpenPrivacy }: { onOpenPrivacy: () => void }
   };
 
   const validate = () => {
-    const e: any = {};
+    const e: Record<string, string> = {};
     if (!form.name.trim()) e.name = "Votre nom est requis";
     if (!isEmailOk(form.email)) e.email = "Adresse e-mail invalide";
     if (form.message.trim().length < 20) e.message = "Le message doit contenir au moins 20 caractères";
-    if (!tsToken) e.captcha = "Vérification requise";
+    if (SITE_KEY && !tsToken) e.captcha = "Vérification requise"; // ✅ seulement si une clé existe
     setErrors(e);
     return Object.keys(e).length === 0;
   };
@@ -78,13 +80,15 @@ export default function Contact({ onOpenPrivacy }: { onOpenPrivacy: () => void }
         setForm({ name: "", email: "", message: "" });
         setErrors({});
         setTsToken("");
-        regenWidget();
+        if (SITE_KEY) regenWidget(); // ✅ régénère le widget après succès
         track("contact_form_submitted", { message_length: form.message.length });
       } else {
         setStatus("error");
+        if (SITE_KEY) { setTsToken(""); regenWidget(); } // ✅ évite "timeout-or-duplicate"
       }
     } catch {
       setStatus("error");
+      if (SITE_KEY) { setTsToken(""); regenWidget(); } // ✅ idem en cas d'exception
     }
   };
 
@@ -177,11 +181,11 @@ export default function Contact({ onOpenPrivacy }: { onOpenPrivacy: () => void }
           <div className="mt-2">
             <Turnstile
               siteKey={SITE_KEY}
-              onToken={(t) => setTsToken(t)}
+              onToken={handleTsToken}  // ✅ stable
               keyProp={widgetKey}
               theme="dark"
             />
-            {errors.captcha && <p className="text-sm text-red-400 mt-1">{errors.captcha}</p>}
+            {SITE_KEY && errors.captcha && <p className="text-sm text-red-400 mt-1">{errors.captcha}</p>}
           </div>
 
           <button
