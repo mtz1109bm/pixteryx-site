@@ -1,5 +1,5 @@
 @import "tailwindcss";
-
+@import "./styles/fonts.css";
 
 :root {
   font-family: system-ui, Avenir, Helvetica, Arial, sans-serif;
@@ -80,15 +80,6 @@ button:focus-visible {
   overflow: hidden;
 }
 .skip-link:focus {
-  left: 1rem;
-  top: 1rem;
-  width: auto;
-  height: auto;
-  overflow: visible;
-  background: #0ea5e9;
-  color: #0b1220;
-  padding: .5rem .75rem;
-  border-radius: .5rem;
-  z-index: 1000;
-  outline: none;
+  position:fixed; left:16px; top:16px; width:auto; height:auto; padding:8px 12px;
+  background:#0ea5e9; color:#0b1324; border-radius:10px; z-index:9999;
 }

@@ -1,0 +1,41 @@
+<!doctype html>
+<html lang="fr">
+  <head>
+    <meta charset="utf-8" />
+    <title>Page introuvable — Pixteryx</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="robots" content="noindex" />
+    <style>
+      :root{--bg:#0f172a;--card:#0b1324;--sky:#38bdf8;--text:#e2e8f0;--sub:#94a3b8}
+      *{box-sizing:border-box} html,body{height:100%} body{
+        margin:0; background:radial-gradient(1200px 600px at 30% 40%, rgba(56,189,248,.08), transparent), var(--bg);
+        color:var(--text); font:16px/1.5 system-ui, -apple-system, Segoe UI, Roboto, Inter, "Inter var", Ubuntu, Cantarell, "Helvetica Neue", Arial, "Noto Sans", "Apple Color Emoji","Segoe UI Emoji","Segoe UI Symbol";
+      }
+      .wrap{min-height:100%; display:flex; align-items:center; justify-content:center; padding:48px 16px}
+      .card{max-width:720px; width:100%; background:rgba(11,19,36,.6); border:1px solid rgba(255,255,255,.08); border-radius:20px; padding:28px; box-shadow:0 10px 30px rgba(0,0,0,.35)}
+      .badge{display:inline-flex; gap:8px; align-items:center; border:1px solid rgba(255,255,255,.12); padding:6px 10px; border-radius:999px; color:var(--sub)}
+      .title{margin:14px 0 6px; font-size:clamp(28px,4vw,40px); font-weight:800}
+      .p{margin:0 0 18px; color:var(--sub)}
+      .row{display:flex; gap:12px; flex-wrap:wrap}
+      .btn{display:inline-flex; align-items:center; gap:8px; padding:12px 16px; border-radius:14px; text-decoration:none; font-weight:600}
+      .primary{background:var(--sky); color:#0b1324}
+      .ghost{border:1px solid rgba(255,255,255,.12); color:var(--text)}
+      .small{font-size:13px; color:var(--sub); margin-top:8px}
+      .x{color:#22d3ee}
+    </style>
+  </head>
+  <body>
+    <div class="wrap">
+      <div class="card">
+        <span class="badge">Erreur 404 • Page introuvable</span>
+        <h1 class="title">Oups — rien ici.</h1>
+        <p class="p">Le lien a peut-être changé ou n’existe plus. Retournez à l’accueil, ou contactez-nous si le problème persiste.</p>
+        <div class="row">
+          <a class="btn primary" href="/">← Retour à l’accueil</a>
+          <a class="btn ghost" href="/devis-rapide">Devis rapide <span class="x">→</span></a>
+        </div>
+        <div class="small">Pixteryx • Data • IA • Vision & Développement</div>
+      </div>
+    </div>
+  </body>
+</html>

@@ -1,0 +1,18 @@
+/* src/styles/fonts.css */
+/* Met le fichier Inter-Variable.woff2 dans /public/fonts/ */
+@font-face {
+  font-family: "Inter var";
+  font-style: normal;
+  font-weight: 100 900;
+  font-display: swap;
+  src:
+    url("/fonts/Inter-Variable.woff2") format("woff2-variations"),
+    url("/fonts/Inter-Variable.woff2") format("woff2");
+}
+
+:root {
+  --font-sans: "Inter var", ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Ubuntu, Cantarell, "Helvetica Neue", Arial, "Noto Sans", "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol";
+}
+
+/* Applique partout (tu peux aussi le faire via Tailwind config si tu préfères) */
+html, body { font-family: var(--font-sans); }

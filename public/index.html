@@ -9,7 +9,9 @@
       name="description"
       content="Pixteryx — IA, Data, Vision par ordinateur et développement web/mobile. Nous transformons vos données en décisions. Toulouse, France."
     />
-    <meta name="theme-color" content="#0f172a" />
+
+    <!-- Couleur de thème (barre d'adresse mobile, PWA) -->
+    <meta name="theme-color" content="#0ea5e9" />
 
     <!-- Icônes & manifest -->
     <link rel="icon" href="/icon-32.png" sizes="32x32" />
@@ -17,11 +19,16 @@
     <link rel="apple-touch-icon" href="/icon-192.png" />
     <link rel="manifest" href="/site.webmanifest" />
 
-    <!-- Perf (analytics/captcha) -->
-    <link rel="preconnect" href="https://plausible.io" />
-    <link rel="preconnect" href="https://challenges.cloudflare.com" />
+    <!-- Perf: DNS + preconnect externes utilisés (analytics + captcha) -->
+    <link rel="dns-prefetch" href="https://plausible.io" />
+    <link rel="preconnect" href="https://plausible.io" crossorigin />
+    <link rel="dns-prefetch" href="https://challenges.cloudflare.com" />
+    <link rel="preconnect" href="https://challenges.cloudflare.com" crossorigin />
 
-    <!-- Plausible (à l'intérieur du <head>) -->
+    <!-- Preload police locale (assure-toi que le fichier existe) -->
+    <link rel="preload" href="/fonts/Inter-Variable.woff2" as="font" type="font/woff2" crossorigin />
+
+    <!-- Analytics -->
     <script defer data-domain="pixteryx.fr" src="https://plausible.io/js/script.js"></script>
   </head>
   <body>
@@ -29,5 +36,3 @@
     <script type="module" src="/src/main.tsx"></script>
   </body>
 </html>
-<link rel="manifest" href="/site.webmanifest" />
-<meta name="theme-color" content="#0ea5e9" />
