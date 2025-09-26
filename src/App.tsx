@@ -13,6 +13,7 @@ import Cases from "./pages/Cases";
 import CaseDetail from "./pages/CaseDetail";
 import { StickyActions } from "./components/StickyActions";
 import NotFound from "./pages/NotFound";
+import { SEO } from "./components/SEO";
 
 const MentionsContent = lazy(() => import("./pages/MentionsContent"));
 const PrivacyContent = lazy(() => import("./pages/PrivacyContent"));
@@ -84,5 +85,38 @@ export default function App() {
         </Suspense>
       )}
     </>
+  );
+}
+export function HomeSEO() {
+  return (
+    <SEO
+      title="Pixteryx — Data, IA, Vision & Développement"
+      description="Pixteryx transforme vos données en décisions : data analytics, IA/ML, vision par ordinateur et développement web/mobile. Fiabilité, performance, durabilité."
+      canonical="https://www.pixteryx.fr/"
+      jsonLd={{
+        "@context": "https://schema.org",
+        "@type": "Organization",
+        "name": "Pixteryx",
+        "url": "https://www.pixteryx.fr",
+        "logo": "https://www.pixteryx.fr/icon-512.png",
+        "sameAs": [
+          // Ajoute tes profils si besoin
+        ],
+        "address": {
+          "@type": "PostalAddress",
+          "streetAddress": "143 Grande Rue Saint Michel",
+          "addressLocality": "Toulouse",
+          "postalCode": "31400",
+          "addressCountry": "FR"
+        },
+        "contactPoint": [{
+          "@type": "ContactPoint",
+          "contactType": "customer support",
+          "email": "contact@pixteryx.fr",
+          "telephone": "+33766705330",
+          "areaServed": "FR"
+        }]
+      }}
+    />
   );
 }
