@@ -13,9 +13,9 @@ declare global {
 }
 
 type Props = {
-  siteKey?: string;                // string attendue par l’API
+  siteKey?: string;                // doit être une string
   onToken?: (token: string) => void;
-  keyProp?: number;                // change pour forcer un reset/rerender
+  keyProp?: number;                // change -> re-render
   theme?: "auto" | "light" | "dark";
   className?: string;
 };
@@ -23,7 +23,6 @@ type Props = {
 function loadScript(): Promise<void> {
   if (window.turnstile) return Promise.resolve();
   if (window.__turnstileReady) return window.__turnstileReady;
-
   window.__turnstileReady = new Promise<void>((resolve, reject) => {
     const s = document.createElement("script");
     s.src = "https://challenges.cloudflare.com/turnstile/v0/api.js?render=explicit";
@@ -40,15 +39,15 @@ export function Turnstile({ siteKey, onToken, keyProp, theme = "auto", className
   const ref = useRef<HTMLDivElement | null>(null);
   const [widgetId, setWidgetId] = useState<string | null>(null);
 
-  // 1) Mount: load script + initial render
+  // Render initial — UNE SEULE fois (quand siteKey string dispo)
   useEffect(() => {
     let cancelled = false;
     (async () => {
-      if (!siteKey || typeof siteKey !== "string") return; // ne tente pas si pas de clé
+      if (!siteKey || typeof siteKey !== "string") return;
       await loadScript();
       if (cancelled || !ref.current || !window.turnstile) return;
 
-      // Sécurité: si un rendu existe déjà dans ce container, on le purge
+      // sécurité : purge le container avant tout render
       try { ref.current.innerHTML = ""; } catch {}
 
       const id = window.turnstile.render(ref.current, {
@@ -67,16 +66,16 @@ export function Turnstile({ siteKey, onToken, keyProp, theme = "auto", className
       }
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [siteKey]); // render initial quand la clé est dispo
+  }, [siteKey]); // ne dépend QUE de siteKey
 
-  // 2) Reset/re-render quand keyProp change
+  // Re-render UNIQUEMENT quand keyProp change (évite le double render initial)
   useEffect(() => {
+    if (keyProp === undefined) return;  // <— garde-fou essentiel
     (async () => {
       if (!siteKey || typeof siteKey !== "string") return;
       await loadScript();
       if (!ref.current || !window.turnstile) return;
 
-      // Supprimer l’ancien widget s’il existe, puis re-render propre
       try {
         if (widgetId) window.turnstile.remove(widgetId);
         ref.current.innerHTML = "";
@@ -91,13 +90,13 @@ export function Turnstile({ siteKey, onToken, keyProp, theme = "auto", className
       setWidgetId(id);
     })();
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [keyProp]); // uniquement quand on veut régénérer
+  }, [keyProp]); // ne TRIG que si tu changes keyProp toi-même
 
-  // Placeholder si pas de clé (dev/local désactivé)
+  // Placeholder si pas de clé valide
   if (!siteKey || typeof siteKey !== "string") {
     return (
       <div className={className} style={{ opacity: 0.7, fontSize: 14 }}>
-        (Turnstile désactivé — VITE_TURNSTILE_SITE_KEY manquant)
+        (Turnstile désactivé — VITE_TURNSTILE_SITE_KEY manquant ou invalide)
       </div>
     );
   }
